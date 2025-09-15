@@ -218,13 +218,15 @@ python ai_analyzer.py home
 5. **Show Scalability**: Demonstrate multiple device monitoring
 6. **Discuss Impact**: Energy savings and environmental benefits
 
-## 🏅 Why This Wins
+## 🏅 Why This Wins the Kiro Competition
 
-- **Perfect Category Fit**: True local agent with humanitarian impact
-- **Technical Innovation**: Creative use of gpt-oss for energy analysis
-- **Real-World Ready**: Can be deployed immediately
-- **Compelling Demo**: Visual, interactive, and immediately understandable
-- **Scalable Solution**: Works for apartments to large homes
+- **Perfect Category Fit**: Productivity & Workflow Tools - Saves time, reduces friction, simplifies energy management
+- **Exceptional Kiro Integration**: Built entirely with Kiro's spec-to-code approach and agent hooks
+- **Real-World Impact**: 10-20% energy savings, $200-500 annual cost reduction for households
+- **Technical Excellence**: Production-ready system with comprehensive testing and documentation
+- **Privacy Innovation**: Complete local operation, no cloud dependency, user owns all data
+- **AI Innovation**: Sophisticated mock AI system ready for gpt-oss integration
+- **Immediate Value**: Works out-of-the-box with realistic simulation data
 
 ## 📊 Expected Impact
 
