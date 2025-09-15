@@ -1,0 +1,601 @@
+{% extends "base.html" %}
+
+{% block title %}AI Insights - Smart Energy Monitor{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4" style="color: #00ff7f; text-shadow: 0 0 10px rgba(0, 255, 127, 0.5); font-weight: bold;">
+            <i class="fas fa-brain"></i> AI Energy Insights
+            <small style="color: rgba(255, 255, 255, 0.8); text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);">Powered by gpt-oss</small>
+        </h1>
+    </div>
+</div>
+
+<!-- Home Analysis -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header" style="background: linear-gradient(135deg, #0f1419 0%, #1a2332 100%); border-bottom: 2px solid rgba(0, 255, 127, 0.3);">
+                <h5 class="mb-0" style="color: #00ff7f; text-shadow: 0 0 10px rgba(0, 255, 127, 0.5);">
+                    <i class="fas fa-home"></i> Home Energy Analysis
+                    <button class="btn btn-sm btn-outline-success float-end" onclick="refreshHomeAnalysis()" style="border-color: #00ff7f; color: #00ff7f;">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                </h5>
+            </div>
+            <div class="card-body" id="home-analysis">
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Device Insights -->
+<div class="row">
+    <div class="col-12">
+        <h3 class="mb-3" style="color: #00ff7f; text-shadow: 0 0 10px rgba(0, 255, 127, 0.5); font-weight: bold; border-bottom: 2px solid rgba(0, 255, 127, 0.3); padding-bottom: 10px;">
+            <i class="fas fa-microchip"></i> Device-Specific Insights
+        </h3>
+        <div class="row" id="device-insights">
+            <!-- Device insights will be loaded here -->
+        </div>
+    </div>
+</div>
+
+<!-- Monthly Analysis -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header" style="background: linear-gradient(135deg, #0f1419 0%, #1a2332 100%); border-bottom: 2px solid rgba(0, 255, 127, 0.3);">
+                <h5 class="mb-0" style="color: #00ff7f; text-shadow: 0 0 10px rgba(0, 255, 127, 0.5);">
+                    <i class="fas fa-calendar-alt"></i> Monthly AI Analysis & Predictions
+                    <button class="btn btn-sm btn-outline-success float-end" onclick="refreshMonthlyAnalysis()" style="border-color: #00ff7f; color: #00ff7f;">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                </h5>
+            </div>
+            <div class="card-body" id="monthly-analysis">
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Daily Report -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header" style="background: linear-gradient(135deg, #0f1419 0%, #1a2332 100%); border-bottom: 2px solid rgba(0, 255, 127, 0.3);">
+                <h5 class="mb-0" style="color: #00ff7f; text-shadow: 0 0 10px rgba(0, 255, 127, 0.5);">
+                    <i class="fas fa-calendar-day"></i> Daily Energy Report
+                </h5>
+            </div>
+            <div class="card-body" id="daily-report">
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function loadInsights() {
+    await Promise.all([
+        loadHomeAnalysis(),
+        loadDeviceInsights(),
+        loadMonthlyAnalysis(),
+        loadDailyReport()
+    ]);
+}
+
+async function loadHomeAnalysis() {
+    try {
+        const response = await fetch('/api/home_analysis');
+        const analysis = await response.json();
+        
+        const homeAnalysisDiv = document.getElementById('home-analysis');
+        
+        if (analysis.error) {
+            homeAnalysisDiv.innerHTML = `
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i> ${analysis.error}
+                </div>
+            `;
+            return;
+        }
+        
+        const insightsHtml = analysis.insights.map(insight => `
+            <div class="alert alert-info insight-card">
+                <i class="fas fa-lightbulb"></i> ${insight}
+            </div>
+        `).join('');
+        
+        const recommendationsHtml = analysis.recommendations.map(rec => `
+            <div class="alert alert-success recommendation-card">
+                <i class="fas fa-leaf"></i> ${rec}
+            </div>
+        `).join('');
+        
+        homeAnalysisDiv.innerHTML = `
+            <div class="row">
+                <div class="col-md-6">
+                    <h6><i class="fas fa-chart-bar"></i> Energy Summary</h6>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>Total Devices:</span>
+                            <strong>${analysis.total_devices}</strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>Total Energy:</span>
+                            <strong>${analysis.total_energy_kwh} kWh</strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>Total Cost:</span>
+                            <strong>$${analysis.total_cost.toFixed(4)}</strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>Peak Hours:</span>
+                            <strong>${analysis.peak_hours.join(', ')}:00</strong>
+                        </li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <h6><i class="fas fa-trophy"></i> Top Energy Consumers</h6>
+                    <div class="list-group">
+                        ${Object.entries(analysis.device_summary || {})
+                            .sort((a, b) => (b[1].avg_power_watts || 0) - (a[1].avg_power_watts || 0))
+                            .slice(0, 5)
+                            .map(([device, stats]) => `
+                                <div class="list-group-item d-flex justify-content-between">
+                                    <span>${device}</span>
+                                    <strong>${(stats.avg_power_watts || 0).toFixed(1)}W</strong>
+                                </div>
+                            `).join('')}
+                    </div>
+                </div>
+            </div>
+            
+            <hr class="my-4">
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <h6><i class="fas fa-lightbulb"></i> AI Insights</h6>
+                    ${insightsHtml}
+                </div>
+                <div class="col-md-6">
+                    <h6><i class="fas fa-leaf"></i> Recommendations</h6>
+                    ${recommendationsHtml}
+                </div>
+            </div>
+        `;
+        
+    } catch (error) {
+        console.error('Error loading home analysis:', error);
+        document.getElementById('home-analysis').innerHTML = `
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-circle"></i> Error loading analysis
+            </div>
+        `;
+    }
+}
+
+async function loadDeviceInsights() {
+    try {
+        const devicesResponse = await fetch('/api/devices');
+        const devices = await devicesResponse.json();
+        
+        const deviceInsightsDiv = document.getElementById('device-insights');
+        deviceInsightsDiv.innerHTML = '';
+        
+        // Load insights for all devices that have data
+        const readingsResponse = await fetch('/api/current_readings');
+        const readings = await readingsResponse.json();
+        
+        // Show all devices that have readings
+        const activeDevices = devices.filter(device => {
+            const reading = readings.find(r => r.device_id === device.id);
+            return reading !== undefined;
+        });
+        
+        for (const device of activeDevices.slice(0, 8)) {
+            try {
+                const analysisResponse = await fetch(`/api/device_analysis/${device.id}`);
+                const analysis = await analysisResponse.json();
+                
+                if (!analysis.error) {
+                    const deviceCard = `
+                        <div class="col-md-6 col-lg-4 mb-3">
+                            <div class="card h-100">
+                                <div class="card-header">
+                                    <h6 class="mb-0">
+                                        <i class="fas fa-plug"></i> ${device.name}
+                                        <small class="text-muted">(${(analysis.statistics.efficiency_score || 50).toFixed(0)}/100)</small>
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <small class="text-muted">Average Power:</small>
+                                        <div class="h5">${(analysis.statistics.avg_power_watts || 0).toFixed(1)}W</div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <h6>AI Insights:</h6>
+                                        ${(analysis.insights || []).slice(0, 2).map(insight => `
+                                            <div class="alert alert-info py-2 small">${insight}</div>
+                                        `).join('')}
+                                    </div>
+                                    
+                                    ${(analysis.recommendations || []).length > 0 ? `
+                                        <div>
+                                            <h6>Recommendations:</h6>
+                                            ${analysis.recommendations.slice(0, 1).map(rec => `
+                                                <div class="alert alert-success py-2 small">${rec}</div>
+                                            `).join('')}
+                                        </div>
+                                    ` : ''}
+                                </div>
+                                <div class="card-footer">
+                                    <button class="btn btn-sm btn-outline-primary" onclick="viewDevice('${device.id}')">
+                                        View Details
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    deviceInsightsDiv.innerHTML += deviceCard;
+                } else {
+                    // Show device with fallback info
+                    const reading = readings.find(r => r.device_id === device.id);
+                    const power = reading ? reading.power_watts.toFixed(1) : '0.0';
+                    
+                    const fallbackCard = `
+                        <div class="col-md-6 col-lg-4 mb-3">
+                            <div class="card h-100">
+                                <div class="card-header">
+                                    <h6 class="mb-0">
+                                        <i class="fas fa-plug"></i> ${device.name}
+                                        <small class="text-muted">(Analyzing...)</small>
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <small class="text-muted">Current Power:</small>
+                                        <div class="h5">${power}W</div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <h6>AI Insights:</h6>
+                                        <div class="alert alert-warning py-2 small">
+                                            <i class="fas fa-clock"></i> Analysis in progress - check back soon!
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <h6>Recommendations:</h6>
+                                        <div class="alert alert-info py-2 small">
+                                            <i class="fas fa-lightbulb"></i> Monitor usage patterns for optimization opportunities
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-footer">
+                                    <button class="btn btn-sm btn-outline-primary" onclick="viewDevice('${device.id}')">
+                                        View Details
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    deviceInsightsDiv.innerHTML += fallbackCard;
+                }
+            } catch (error) {
+                console.error(`Error loading analysis for ${device.name}:`, error);
+            }
+        }
+        
+        if (activeDevices.length === 0) {
+            deviceInsightsDiv.innerHTML = `
+                <div class="col-12">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> No active devices found. Start collecting data to see insights.
+                    </div>
+                </div>
+            `;
+        }
+        
+    } catch (error) {
+        console.error('Error loading device insights:', error);
+    }
+}
+
+async function loadDailyReport() {
+    try {
+        const response = await fetch('/api/daily_report');
+        const report = await response.json();
+        
+        const dailyReportDiv = document.getElementById('daily-report');
+        
+        if (report.error) {
+            dailyReportDiv.innerHTML = `
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i> ${report.error}
+                </div>
+            `;
+            return;
+        }
+        
+        const topConsumersHtml = Object.entries(report.top_energy_consumers || {})
+            .map(([device, cost]) => `
+                <li class="list-group-item d-flex justify-content-between">
+                    <span>${device}</span>
+                    <strong>$${cost.toFixed(4)}</strong>
+                </li>
+            `).join('');
+        
+        const insightsHtml = (report.insights || []).map(insight => `
+            <div class="alert alert-info py-2">${insight}</div>
+        `).join('');
+        
+        const recommendationsHtml = (report.recommendations || []).map(rec => `
+            <div class="alert alert-success py-2">${rec}</div>
+        `).join('');
+        
+        dailyReportDiv.innerHTML = `
+            <div class="row">
+                <div class="col-md-4">
+                    <h6>Daily Summary</h6>
+                    <ul class="list-group">
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>Date:</span>
+                            <strong>${report.summary.date}</strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>Total Energy:</span>
+                            <strong>${report.summary.total_energy_kwh.toFixed(4)} kWh</strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>Total Cost:</span>
+                            <strong>$${report.summary.total_cost.toFixed(4)}</strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>Peak Power:</span>
+                            <strong>${report.summary.peak_power_watts.toFixed(1)}W</strong>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="col-md-4">
+                    <h6>Top Consumers</h6>
+                    <ul class="list-group">
+                        ${topConsumersHtml}
+                    </ul>
+                </div>
+                
+                <div class="col-md-4">
+                    <h6>Daily Insights</h6>
+                    ${insightsHtml}
+                    ${recommendationsHtml}
+                </div>
+            </div>
+        `;
+        
+    } catch (error) {
+        console.error('Error loading daily report:', error);
+        document.getElementById('daily-report').innerHTML = `
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-circle"></i> Error loading daily report
+            </div>
+        `;
+    }
+}
+
+async function loadMonthlyAnalysis() {
+    try {
+        const response = await fetch('/api/monthly_analysis');
+        const analysis = await response.json();
+        
+        const monthlyAnalysisDiv = document.getElementById('monthly-analysis');
+        
+        if (analysis.error) {
+            monthlyAnalysisDiv.innerHTML = `
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i> ${analysis.error}
+                </div>
+            `;
+            return;
+        }
+        
+        const currentMonth = analysis.current_month;
+        const projections = analysis.projections;
+        const comparison = analysis.comparison;
+        const historicalMonths = analysis.historical_months || [];
+        
+        // Generate top consumers HTML
+        const topConsumersHtml = Object.entries(currentMonth.data.top_consumers || {})
+            .slice(0, 5)
+            .map(([device, cost]) => `
+                <li class="list-group-item d-flex justify-content-between">
+                    <span>${device}</span>
+                    <strong>$${cost.toFixed(2)}</strong>
+                </li>
+            `).join('');
+        
+        // Generate insights HTML
+        const insightsHtml = (analysis.insights || []).map(insight => `
+            <div class="alert alert-info py-2" style="background-color: #d1ecf1; border-color: #bee5eb; color: #0c5460; border: 1px solid #bee5eb;">
+                <i class="fas fa-lightbulb" style="color: #0c5460;"></i> ${insight}
+            </div>
+        `).join('');
+        
+        // Generate predictions HTML
+        const predictionsHtml = (analysis.predictions || []).map(prediction => `
+            <div class="alert alert-primary py-2" style="background-color: #cce7ff; border-color: #99d6ff; color: #004085; border: 1px solid #99d6ff;">
+                <i class="fas fa-chart-line" style="color: #004085;"></i> ${prediction}
+            </div>
+        `).join('');
+        
+        // Generate recommendations HTML
+        const recommendationsHtml = (analysis.recommendations || []).map(rec => `
+            <div class="alert alert-success py-2" style="background-color: #d4edda; border-color: #c3e6cb; color: #155724; border: 1px solid #c3e6cb;">
+                <i class="fas fa-leaf" style="color: #155724;"></i> ${rec}
+            </div>
+        `).join('');
+        
+        // Historical trend analysis
+        let historicalTrendHtml = '';
+        if (historicalMonths.length >= 6) {
+            historicalTrendHtml = `
+                <div class="mt-3">
+                    <h6 style="color: #28a745;">📊 Advanced 6+ Month Analysis</h6>
+                    <div class="alert py-2" style="background-color: #f8f9fa; border: 2px solid #28a745; color: #155724;">
+                        <strong>🎯 AI Predictions Available!</strong><br>
+                        With ${historicalMonths.length} months of data, I can predict seasonal patterns and suggest optimal energy strategies.
+                    </div>
+                </div>
+            `;
+        } else if (historicalMonths.length >= 3) {
+            historicalTrendHtml = `
+                <div class="mt-3">
+                    <h6 style="color: #007bff;">📈 Trend Analysis</h6>
+                    <div class="alert py-2" style="background-color: #e7f3ff; border: 1px solid #99d6ff; color: #004085;">
+                        <strong>${historicalMonths.length} months of data</strong> - patterns are emerging!
+                    </div>
+                </div>
+            `;
+        } else {
+            historicalTrendHtml = `
+                <div class="mt-3">
+                    <div class="alert py-2" style="background-color: #fff3cd; border: 1px solid #ffeaa7; color: #856404;">
+                        <strong>📊 Building Your Profile:</strong> Collect more data to unlock advanced AI insights!
+                    </div>
+                </div>
+            `;
+        }
+        
+        monthlyAnalysisDiv.innerHTML = `
+            <div class="row">
+                <div class="col-md-4">
+                    <h6>${currentMonth.name} ${currentMonth.year} Summary</h6>
+                    <ul class="list-group">
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>Projected kWh:</span>
+                            <strong style="color: #007bff;">${projections.projected_kwh} kWh</strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>Projected Cost:</span>
+                            <strong style="color: #28a745;">${projections.projected_cost}</strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>Current Usage:</span>
+                            <strong>${projections.current_kwh} kWh</strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>Days Elapsed:</span>
+                            <strong>${projections.days_elapsed} days</strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>Peak Power:</span>
+                            <strong style="color: #dc3545;">${projections.peak_power}W</strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>Active Devices:</span>
+                            <strong>${projections.active_devices}</strong>
+                        </li>
+                    </ul>
+                    
+                    ${historicalTrendHtml}
+                </div>
+                
+                <div class="col-md-4">
+                    <h6>Top Energy Users This Month</h6>
+                    <ul class="list-group">
+                        ${topConsumersHtml || '<li class="list-group-item">No data available yet</li>'}
+                    </ul>
+                    
+                    ${comparison.last_month_name ? `
+                        <div class="mt-3">
+                            <h6>Compared to ${comparison.last_month_name}</h6>
+                            <ul class="list-group">
+                                <li class="list-group-item d-flex justify-content-between">
+                                    <span>Last Month Cost:</span>
+                                    <strong>${comparison.last_month_cost}</strong>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between">
+                                    <span>Change:</span>
+                                    <strong class="${comparison.change_direction === 'increase' ? 'text-warning' : 'text-success'}">
+                                        ${comparison.change_percent > 0 ? '+' : ''}${comparison.change_percent}%
+                                    </strong>
+                                </li>
+                            </ul>
+                        </div>
+                    ` : `
+                        <div class="mt-3">
+                            <div class="alert alert-info py-2" style="background-color: #d1ecf1; border-color: #bee5eb; color: #0c5460;">
+                                <i class="fas fa-info-circle"></i> Keep collecting data for month-to-month comparisons!
+                            </div>
+                        </div>
+                    `}
+                </div>
+                
+                <div class="col-md-4">
+                    <h6>AI Insights & Tips</h6>
+                    ${insightsHtml}
+                    ${predictionsHtml}
+                    ${recommendationsHtml}
+                </div>
+            </div>
+        `;
+        
+    } catch (error) {
+        console.error('Error loading monthly analysis:', error);
+        document.getElementById('monthly-analysis').innerHTML = `
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-circle"></i> Error loading monthly analysis. Please try refreshing.
+            </div>
+        `;
+    }
+}
+
+function refreshHomeAnalysis() {
+    document.getElementById('home-analysis').innerHTML = `
+        <div class="text-center">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    `;
+    loadHomeAnalysis();
+}
+
+function refreshMonthlyAnalysis() {
+    document.getElementById('monthly-analysis').innerHTML = `
+        <div class="text-center">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    `;
+    loadMonthlyAnalysis();
+}
+
+function viewDevice(deviceId) {
+    window.location.href = `/device/${deviceId}`;
+}
+
+// Initial load
+loadInsights();
+</script>
+{% endblock %}

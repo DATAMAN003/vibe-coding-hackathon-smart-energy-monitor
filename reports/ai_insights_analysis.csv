@@ -1,0 +1,36 @@
+device_name,insight_type,priority,frequency,latest_insight
+Bedroom AC,savings_opportunity,low,4,2025-08-17 13:11:11.966969
+Kitchen Fridge,cost_alert,high,4,2025-08-17 13:11:11.966969
+Bedroom AC,cost_alert,high,3,2025-08-18 13:11:11.966969
+Electric Dryer,device_pattern,medium,3,2025-08-15 13:11:11.966969
+Electric Dryer,maintenance_reminder,medium,3,2025-08-23 13:11:11.966969
+Kitchen Microwave,device_pattern,medium,3,2025-08-23 13:11:11.966969
+Kitchen Microwave,savings_opportunity,low,3,2025-08-18 13:11:11.966969
+Living Room TV,device_pattern,medium,3,2025-08-20 13:11:11.966969
+Bedroom AC,efficiency_tip,medium,2,2025-08-15 13:11:11.966969
+Electric Dryer,energy_spike,high,2,2025-08-19 13:11:11.966969
+Home Office Computer,cost_alert,high,2,2025-08-12 13:11:11.966969
+Home Office Computer,device_pattern,medium,2,2025-08-22 13:11:11.966969
+Home Office Computer,maintenance_reminder,medium,2,2025-08-20 13:11:11.966969
+Home Office Computer,savings_opportunity,low,2,2025-08-03 13:11:11.966969
+Kitchen Fridge,device_pattern,medium,2,2025-08-24 13:11:11.966969
+Kitchen Microwave,maintenance_reminder,medium,2,2025-08-24 13:11:11.966969
+Living Room TV,efficiency_tip,medium,2,2025-08-25 13:11:11.966969
+Living Room TV,energy_spike,high,2,2025-08-20 13:11:11.966969
+Bedroom AC,device_pattern,medium,1,2025-08-26 13:11:11.966969
+Bedroom AC,energy_spike,high,1,2025-08-24 13:11:11.966969
+Bedroom AC,maintenance_reminder,medium,1,2025-07-29 13:11:11.966969
+Electric Dryer,cost_alert,high,1,2025-08-22 13:11:11.966969
+Electric Dryer,efficiency_tip,medium,1,2025-08-06 13:11:11.966969
+Home Office Computer,efficiency_tip,medium,1,2025-08-21 13:11:11.966969
+Home Office Computer,energy_spike,high,1,2025-08-12 13:11:11.966969
+Kitchen Fridge,energy_spike,high,1,2025-07-31 13:11:11.966969
+Kitchen Fridge,maintenance_reminder,medium,1,2025-08-19 13:11:11.966969
+Kitchen Microwave,cost_alert,high,1,2025-08-21 13:11:11.966969
+Kitchen Microwave,efficiency_tip,medium,1,2025-07-28 13:11:11.966969
+Kitchen Microwave,energy_spike,high,1,2025-08-18 13:11:11.966969
+Living Room TV,maintenance_reminder,medium,1,2025-08-02 13:11:11.966969
+Living Room TV,savings_opportunity,low,1,2025-08-10 13:11:11.966969
+Washing Machine,cost_alert,high,1,2025-08-19 13:11:11.966969
+Washing Machine,maintenance_reminder,medium,1,2025-08-12 13:11:11.966969
+Washing Machine,savings_opportunity,low,1,2025-08-06 13:11:11.966969

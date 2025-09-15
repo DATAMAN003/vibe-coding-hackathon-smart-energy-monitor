@@ -1,0 +1,36 @@
+
+SMART ENERGY MONITOR - EXECUTIVE SUMMARY
+========================================
+
+MONITORING PERIOD: 2025-07-28 13:11:11.966969 to 2025-08-27 12:11:11.966969
+TOTAL DATA POINTS: 5,040 readings
+DEVICES MONITORED: 7 smart home devices
+AI INSIGHTS GENERATED: 63 actionable recommendations
+
+KEY FINANCIAL METRICS:
+- Total Energy Cost: $149.72
+- Average Daily Cost: $4.99
+- Projected Monthly Cost: $149.72
+- Projected Annual Cost: $1821.59
+
+TOP ENERGY CONSUMERS:
+- Bedroom AC: 1084.4W avg, $93.69 total
+- Electric Dryer: 256.9W avg, $22.20 total
+- Kitchen Fridge: 155.2W avg, $13.41 total
+
+SYSTEM PERFORMANCE:
+- Data Collection Reliability: 99.9%
+- AI Analysis Coverage: 100% of devices
+- Real-time Monitoring: Active
+- Anomaly Detection: Enabled
+
+ENVIRONMENTAL IMPACT:
+- Total Energy Consumption: 1247.7 kWh/month
+- CO2 Equivalent: 499.1 kg CO2/month
+- Energy Efficiency Score: 85/100
+
+NEXT STEPS:
+1. Implement peak-hour load shifting
+2. Upgrade high-consumption devices
+3. Install smart scheduling systems
+4. Monitor seasonal variations

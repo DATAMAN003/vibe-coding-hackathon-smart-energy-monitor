@@ -1,0 +1,10 @@
+DEVICE POWER CONSUMPTION CHART
+==================================================
+
+Bedroom AC           ######################################## 1084.4W
+Electric Dryer       ######### 256.9W
+Kitchen Fridge       ##### 155.2W
+Kitchen Microwave    ## 71.3W
+Home Office Computer ## 64.3W
+Washing Machine      # 52.7W
+Living Room TV       # 48.2W

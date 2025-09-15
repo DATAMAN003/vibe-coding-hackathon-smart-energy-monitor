@@ -1,0 +1,10 @@
+{
+  "monitoring_period_days": 31,
+  "total_cost": 149.71979292110396,
+  "average_daily_cost": 4.82967073939045,
+  "monthly_projection": 144.8901221817135,
+  "annual_projection": 1762.8298198775144,
+  "highest_cost_day": "2025-08-06",
+  "lowest_cost_day": "2025-07-28",
+  "cost_variance": 1.133207204631254
+}

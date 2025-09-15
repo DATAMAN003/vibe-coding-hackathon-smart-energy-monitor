@@ -1,0 +1,354 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Smart Energy Monitor{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4" style="color: #00ff7f; text-shadow: 0 0 10px rgba(0, 255, 127, 0.5); font-weight: bold;">
+            <i class="fas fa-tachometer-alt"></i> Energy Dashboard
+            <small style="color: rgba(255, 255, 255, 0.8); text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);">Real-time monitoring</small>
+        </h1>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Total Power</h6>
+                        <div class="card-metric" id="total-power">--</div>
+                        <small>Watts</small>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-bolt fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Daily Cost</h6>
+                        <div class="card-metric" id="daily-cost">--</div>
+                        <small>USD</small>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-dollar-sign fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Monthly Est.</h6>
+                        <div class="card-metric" id="monthly-estimate">--</div>
+                        <small>USD</small>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-calendar-alt fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Active Devices</h6>
+                        <div class="card-metric" id="active-devices">--</div>
+                        <small>of <span id="total-devices">--</span></small>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-plug fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Device Grid -->
+<div class="row">
+    <div class="col-12">
+        <h3 class="mb-3" style="color: #00ff7f; text-shadow: 0 0 10px rgba(0, 255, 127, 0.5); font-weight: bold; border-bottom: 2px solid rgba(0, 255, 127, 0.3); padding-bottom: 10px;">
+            <i class="fas fa-microchip"></i> Device Status
+        </h3>
+        <div class="row" id="device-grid">
+            <!-- Devices will be loaded here -->
+        </div>
+    </div>
+</div>
+
+<!-- Power Usage Chart -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header" style="background: linear-gradient(135deg, #0f1419 0%, #1a2332 100%); border-bottom: 2px solid rgba(0, 255, 127, 0.3);">
+                <h5 class="mb-0" style="color: #00ff7f; text-shadow: 0 0 10px rgba(0, 255, 127, 0.5);">
+                    <i class="fas fa-chart-line"></i> Power Usage Over Time
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="powerChart" height="100"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let powerChart;
+
+// Load dashboard data
+async function loadDashboard() {
+    console.log('Loading dashboard...');
+    
+    try {
+        // Load summary data
+        console.log('Loading summary...');
+        const summaryResponse = await fetch('/api/energy_summary');
+        const summary = await summaryResponse.json();
+        console.log('Summary:', summary);
+        
+        document.getElementById('total-power').textContent = summary.total_power_watts || '--';
+        document.getElementById('daily-cost').textContent = '$' + (summary.daily_cost || 0).toFixed(2);
+        document.getElementById('monthly-estimate').textContent = '$' + (summary.monthly_estimate || 0).toFixed(2);
+        document.getElementById('total-devices').textContent = summary.total_devices || '--';
+        
+        // Load devices
+        console.log('Loading devices...');
+        const devicesResponse = await fetch('/api/devices');
+        const devices = await devicesResponse.json();
+        console.log('Devices:', devices);
+        
+        // Load current readings with cache busting
+        console.log('Loading readings...');
+        const timestamp = new Date().getTime();
+        const readingsResponse = await fetch(`/api/current_readings?t=${timestamp}`);
+        const readings = await readingsResponse.json();
+        console.log('Readings:', readings);
+        
+        displayDevices(devices, readings);
+        updateActiveDeviceCount(readings);
+        
+        // Load chart data for the first device with data
+        if (readings.length > 0) {
+            loadPowerChart(readings[0].device_id);
+        }
+        
+    } catch (error) {
+        console.error('Error loading dashboard:', error);
+        // Show error message to user
+        const deviceGrid = document.getElementById('device-grid');
+        if (deviceGrid) {
+            deviceGrid.innerHTML = `
+                <div class="col-12">
+                    <div class="alert alert-danger">
+                        <h5>Error Loading Dashboard</h5>
+                        <p>There was an error loading the device data. Please check the console for details.</p>
+                        <p>Error: ${error.message}</p>
+                    </div>
+                </div>
+            `;
+        }
+    }
+}
+
+function displayDevices(devices, readings) {
+    console.log('Displaying devices:', devices, readings);
+    
+    const deviceGrid = document.getElementById('device-grid');
+    if (!deviceGrid) {
+        console.error('Device grid element not found!');
+        return;
+    }
+    
+    deviceGrid.innerHTML = '';
+    
+    if (!devices || devices.length === 0) {
+        deviceGrid.innerHTML = `
+            <div class="col-12">
+                <div class="alert alert-warning">
+                    <h5>No Devices Found</h5>
+                    <p>No devices are configured. Please check the configuration.</p>
+                </div>
+            </div>
+        `;
+        return;
+    }
+    
+    devices.forEach(device => {
+        const reading = readings.find(r => r.device_id === device.id);
+        const power = reading ? reading.power_watts : 0;
+        
+        // Uniform deep green card design with power-based accents
+        let statusClass;
+        
+        // Determine status class based on power consumption
+        if (power === 0.0) {
+            statusClass = 'device-disconnected';
+        } else if (power > 500) {
+            statusClass = 'device-high-power';
+        } else if (power > 50) {
+            statusClass = 'device-active';
+        } else if (power > 1) {
+            statusClass = 'device-standby';
+        } else {
+            statusClass = 'device-off';
+        }
+        
+        // Determine status text
+        let status;
+        if (power === 0.0) {
+            status = 'Disconnected';
+        } else if (power > 500) {
+            status = 'High Power';
+        } else if (power > 50) {
+            status = 'Active';
+        } else if (power > 1) {
+            status = 'Standby';
+        } else {
+            status = 'Off';
+        }
+        
+        // Get appropriate icon for device type
+        const deviceName = device.name.toLowerCase();
+        let deviceIcon = 'fas fa-plug';
+        if (deviceName.includes('tv')) deviceIcon = 'fas fa-tv';
+        else if (deviceName.includes('fridge')) deviceIcon = 'fas fa-snowflake';
+        else if (deviceName.includes('microwave')) deviceIcon = 'fas fa-microchip';
+        else if (deviceName.includes('computer')) deviceIcon = 'fas fa-desktop';
+        else if (deviceName.includes('ac') || deviceName.includes('air')) deviceIcon = 'fas fa-wind';
+        else if (deviceName.includes('washer') || deviceName.includes('washing')) deviceIcon = 'fas fa-tint';
+        else if (deviceName.includes('dryer')) deviceIcon = 'fas fa-burn';
+        
+        const deviceCard = `
+            <div class="col-md-4 col-lg-3 mb-4">
+                <div class="card device-card h-100 ${statusClass}" onclick="viewDevice('${device.id}')">
+                    <div class="card-body text-center position-relative">
+                        <div class="device-icon text-white">
+                            <i class="${deviceIcon}"></i>
+                        </div>
+                        
+                        <h6 class="card-title mb-2 text-white">${device.name}</h6>
+                        <p class="card-text small mb-3 text-light opacity-75">${device.location}</p>
+                        
+                        <div class="power-display text-white">
+                            ${power.toFixed(1)}W
+                        </div>
+                        
+                        <div class="d-flex align-items-center justify-content-center mb-2">
+                            <span class="status-indicator ${power === 0.0 ? 'status-disconnected' : power > 500 ? 'status-high-power' : power > 50 ? 'status-active' : power > 1 ? 'status-standby' : 'status-off'}"></span>
+                            <small class="fw-bold text-white">${status}</small>
+                        </div>
+                        
+                        ${power > 0 ? `
+                            <div class="mt-2">
+                                <small class="text-light opacity-75">
+                                    ~$${((power * 24 * 0.12) / 1000).toFixed(3)}/day
+                                </small>
+                            </div>
+                        ` : ''}
+                        
+                        <div class="position-absolute top-0 end-0 p-2">
+                            <i class="fas fa-bolt text-light opacity-50" style="font-size: 0.8rem;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        deviceGrid.innerHTML += deviceCard;
+    });
+}
+
+function updateActiveDeviceCount(readings) {
+    // Count devices that are truly "Active" (>50W) to match the visual status
+    // This matches the visual status: High Power (>500W), Active (>50W), Standby (>1W)
+    const activeDevices = readings.filter(r => r.power_watts >= 50);
+    const activeCount = activeDevices.length;
+    
+    // Update the display
+    document.getElementById('active-devices').textContent = activeCount;
+    
+    // Optional: Log for debugging (can be removed in production)
+    if (console && console.log) {
+        console.log(`Active devices: ${activeCount} of ${readings.length} total`);
+    }
+}
+
+async function loadPowerChart(deviceId) {
+    try {
+        const response = await fetch(`/api/historical_data/${deviceId}?hours=24`);
+        const data = await response.json();
+        
+        const ctx = document.getElementById('powerChart').getContext('2d');
+        
+        if (powerChart) {
+            powerChart.destroy();
+        }
+        
+        powerChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: data.timestamps.map(t => new Date(t).toLocaleTimeString()),
+                datasets: [{
+                    label: 'Power (Watts)',
+                    data: data.power_watts,
+                    borderColor: 'rgb(75, 192, 192)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Power (Watts)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Time'
+                        }
+                    }
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Error loading chart:', error);
+    }
+}
+
+function viewDevice(deviceId) {
+    window.location.href = `/device/${deviceId}`;
+}
+
+// Auto-refresh every 30 seconds
+setInterval(loadDashboard, 30000);
+
+// Initial load
+loadDashboard();
+</script>
+{% endblock %}

@@ -1,0 +1,18 @@
+# AI dependencies for gpt-oss integration
+# Install with: pip install -r requirements-ai.txt
+
+transformers>=4.20.0
+torch>=1.12.0
+accelerate>=0.20.0
+
+# Optional GPU support
+# For NVIDIA GPUs, also install:
+# torch-audio  # if needed for audio processing
+# torchvision  # if needed for vision tasks
+
+# For Apple Silicon Macs:
+# torch>=1.12.0 --index-url https://download.pytorch.org/whl/cpu
+
+# Note: When gpt-oss is officially released, 
+# update the model name in ai_analyzer.py from "gpt-oss-20b" 
+# to the actual model identifier

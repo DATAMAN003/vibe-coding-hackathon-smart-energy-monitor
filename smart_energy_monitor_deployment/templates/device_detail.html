@@ -1,0 +1,239 @@
+{% extends "base.html" %}
+
+{% block title %}{{ device_config.name }} - Smart Energy Monitor{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">Dashboard</a></li>
+                <li class="breadcrumb-item active">{{ device_config.name }}</li>
+            </ol>
+        </nav>
+        
+        <h1 class="mb-4">
+            <i class="fas fa-plug"></i> {{ device_config.name }}
+            <small class="text-muted">{{ device_config.location }}</small>
+        </h1>
+    </div>
+</div>
+
+<!-- Current Status -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center" id="current-status-card">
+            <div class="card-body">
+                <h5 class="card-title">Current Power</h5>
+                <div class="display-4" id="current-power">--</div>
+                <small class="text-muted">Watts</small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">Daily Cost</h5>
+                <div class="display-4 text-success" id="daily-cost">--</div>
+                <small class="text-muted">USD</small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">Efficiency Score</h5>
+                <div class="display-4" id="efficiency-score">--</div>
+                <small class="text-muted">out of 100</small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">Status</h5>
+                <div class="display-6" id="device-status">--</div>
+                <small class="text-muted" id="status-detail">--</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Power Usage Chart -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-line"></i> Power Usage (Last 24 Hours)
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="deviceChart" height="100"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- AI Analysis -->
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-brain"></i> AI Insights
+                </h5>
+            </div>
+            <div class="card-body" id="ai-insights">
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-leaf"></i> Recommendations
+                </h5>
+            </div>
+            <div class="card-body" id="recommendations">
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const deviceId = '{{ device_id }}';
+let deviceChart;
+
+async function loadDeviceData() {
+    try {
+        // Load current reading
+        const readingsResponse = await fetch('/api/current_readings');
+        const readings = await readingsResponse.json();
+        const currentReading = readings.find(r => r.device_id === deviceId);
+        
+        if (currentReading) {
+            document.getElementById('current-power').textContent = currentReading.power_watts.toFixed(1);
+            document.getElementById('daily-cost').textContent = '$' + (currentReading.cost * 24).toFixed(4);
+            
+            // Update status
+            const isOn = currentReading.power_watts > 5;
+            const statusCard = document.getElementById('current-status-card');
+            const statusElement = document.getElementById('device-status');
+            const statusDetail = document.getElementById('status-detail');
+            
+            if (isOn) {
+                statusCard.className = 'card text-center border-success';
+                statusElement.innerHTML = '<i class="fas fa-power-off text-success"></i> ON';
+                statusDetail.textContent = 'Active';
+            } else {
+                statusCard.className = 'card text-center border-secondary';
+                statusElement.innerHTML = '<i class="fas fa-power-off text-secondary"></i> OFF';
+                statusDetail.textContent = 'Standby';
+            }
+        }
+        
+        // Load AI analysis
+        const analysisResponse = await fetch(`/api/device_analysis/${deviceId}`);
+        const analysis = await analysisResponse.json();
+        
+        if (!analysis.error) {
+            document.getElementById('efficiency-score').textContent = analysis.statistics.efficiency_score;
+            
+            // Display insights
+            const insightsHtml = analysis.insights.map(insight => `
+                <div class="alert alert-info py-2 mb-2">
+                    <small>${insight}</small>
+                </div>
+            `).join('');
+            document.getElementById('ai-insights').innerHTML = insightsHtml;
+            
+            // Display recommendations
+            const recommendationsHtml = analysis.recommendations.map(rec => `
+                <div class="alert alert-success py-2 mb-2">
+                    <small><i class="fas fa-lightbulb"></i> ${rec}</small>
+                </div>
+            `).join('');
+            document.getElementById('recommendations').innerHTML = recommendationsHtml || '<p class="text-muted">No specific recommendations at this time.</p>';
+        }
+        
+        // Load chart
+        loadDeviceChart();
+        
+    } catch (error) {
+        console.error('Error loading device data:', error);
+    }
+}
+
+async function loadDeviceChart() {
+    try {
+        const response = await fetch(`/api/historical_data/${deviceId}?hours=24`);
+        const data = await response.json();
+        
+        const ctx = document.getElementById('deviceChart').getContext('2d');
+        
+        if (deviceChart) {
+            deviceChart.destroy();
+        }
+        
+        deviceChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: data.timestamps.map(t => new Date(t).toLocaleTimeString()),
+                datasets: [{
+                    label: 'Power (Watts)',
+                    data: data.power_watts,
+                    borderColor: 'rgb(75, 192, 192)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                    tension: 0.1,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Power (Watts)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Time'
+                        }
+                    }
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Error loading chart:', error);
+    }
+}
+
+// Auto-refresh every 30 seconds
+setInterval(loadDeviceData, 30000);
+
+// Initial load
+loadDeviceData();
+</script>
+{% endblock %}

@@ -1,0 +1,45 @@
+{
+  "name": "Smart Energy Monitor",
+  "version": "v1.0.0",
+  "description": "AI-powered home energy monitoring system",
+  "categories": [
+    "Local Agent",
+    "For Humanity"
+  ],
+  "author": "Smart Energy Monitor Team",
+  "license": "MIT",
+  "python_version": ">=3.8",
+  "features": [
+    "Real-time energy monitoring",
+    "AI-powered analysis and insights",
+    "Web-based dashboard",
+    "Hardware sensor support",
+    "Privacy-first design (100% local)",
+    "gpt-oss ready"
+  ],
+  "requirements": {
+    "core": [
+      "flask>=2.0.0",
+      "pandas>=1.3.0",
+      "numpy>=1.21.0",
+      "requests>=2.25.0",
+      "schedule>=1.1.0",
+      "scikit-learn>=1.0.0",
+      "jinja2>=3.0.0",
+      "plotly>=5.0.0",
+      "matplotlib>=3.5.0",
+      "python-kasa>=0.5.0",
+      "aiohttp>=3.8.0"
+    ],
+    "ai_optional": [
+      "transformers>=4.20.0",
+      "torch>=1.12.0",
+      "accelerate>=0.20.0"
+    ],
+    "hardware_optional": [
+      "spidev>=3.5",
+      "RPi.GPIO>=0.7.0",
+      "gpiozero>=1.6.0"
+    ]
+  }
+}
