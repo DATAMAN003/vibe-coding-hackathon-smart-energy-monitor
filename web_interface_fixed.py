@@ -75,7 +75,54 @@ def insights():
 @app.route('/device/<device_id>')
 def device_detail(device_id):
     """Device detail page"""
-    return render_template('device_detail.html', device_id=device_id)
+    try:
+        # Convert device_id back to device_name for lookup
+        device_name = device_id.replace('_', ' ').title()
+        
+        # Get device information from database
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Get device details
+        cursor.execute("""
+            SELECT DISTINCT device_name
+            FROM energy_readings 
+            WHERE device_name LIKE ? 
+            LIMIT 1
+        """, (f'%{device_name}%',))
+        
+        result = cursor.fetchone()
+        conn.close()
+        
+        if not result:
+            return f"Device {device_id} not found", 404
+        
+        # Create device config object
+        device_config = {
+            'id': device_id,
+            'name': result['device_name'],
+            'location': 'Unknown'  # Default location
+        }
+        
+        # Guess location from device name
+        device_name_lower = result['device_name'].lower()
+        if 'living' in device_name_lower:
+            device_config['location'] = 'Living Room'
+        elif 'kitchen' in device_name_lower:
+            device_config['location'] = 'Kitchen'
+        elif 'bedroom' in device_name_lower:
+            device_config['location'] = 'Bedroom'
+        elif 'office' in device_name_lower:
+            device_config['location'] = 'Office'
+        elif 'laundry' in device_name_lower or 'washing' in device_name_lower or 'dryer' in device_name_lower:
+            device_config['location'] = 'Laundry'
+        
+        return render_template('device_detail.html', 
+                             device_id=device_id, 
+                             device_config=device_config)
+    except Exception as e:
+        print(f"Error in device_detail route: {e}")
+        return f"Error loading device: {str(e)}", 500
 
 # API Endpoints
 @app.route('/api/current_readings')

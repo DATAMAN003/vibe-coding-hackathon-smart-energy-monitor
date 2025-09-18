@@ -130,7 +130,7 @@ async function loadDeviceData() {
         
         if (currentReading) {
             document.getElementById('current-power').textContent = currentReading.power_watts.toFixed(1);
-            document.getElementById('daily-cost').textContent = '$' + (currentReading.cost * 24).toFixed(4);
+            document.getElementById('daily-cost').textContent = '$' + (currentReading.cost_per_hour * 24).toFixed(4);
             
             // Update status
             const isOn = currentReading.power_watts > 5;
