@@ -27,7 +27,7 @@
 - **Contact**: [Your Email]
 
 ## Repository
-- **GitHub**: [Your Repository URL]
+- **GitHub**: https://github.com/DATAMAN003/vibe-coding-hackathon-smart-energy-monitor
 - **License**: MIT License
 - **Demo**: [Live Demo URL or Video Link]
 
